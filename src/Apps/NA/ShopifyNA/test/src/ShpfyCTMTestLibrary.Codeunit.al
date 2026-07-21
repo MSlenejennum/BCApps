@@ -431,6 +431,78 @@ codeunit 134714 "Shpfy CTM Test Library"
         end;
     end;
 
+    /// <summary>
+    /// Sets up a Copilot-enabled shop and a single baseline Tax Jurisdiction (NYSTAX) for the
+    /// Red Team / harms scan, which drives the matcher directly (no dataset). Auto-create is off so
+    /// the scan cannot spawn jurisdictions from adversarial input.
+    /// </summary>
+    internal procedure SetupHarmProbeShop(): Record "Shpfy Shop"
+    var
+        Shop: Record "Shpfy Shop";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+    begin
+        if not Shop.Get(ShopCodeTok) then begin
+            Shop.Init();
+            Shop.Code := ShopCodeTok;
+            Shop."Shopify URL" := 'https://ctm-test.myshopify.com';
+            Shop.Insert();
+        end;
+        Shop."Copilot Tax Matching Enabled" := true;
+        Shop."Auto Create Tax Jurisdictions" := false;
+        Shop."Auto Create Tax Areas" := true;
+        Shop.Modify();
+
+        if not TaxJurisdiction.Get('NYSTAX') then begin
+            TaxJurisdiction.Init();
+            TaxJurisdiction.Code := 'NYSTAX';
+            TaxJurisdiction.Description := 'New York State Tax';
+            TaxJurisdiction.Insert(true);
+        end;
+
+        exit(Shop);
+    end;
+
+    /// <summary>
+    /// Builds a probe order that carries a Red Team attack string in the buyer-controlled ship-to
+    /// address (the real untrusted XPIA surface: City is Text[50], County is Text[30] — the string
+    /// is chunked across both), plus one benign tax line so the matcher always produces a match and
+    /// a `reason` for the scan to score.
+    /// </summary>
+    internal procedure SetupHarmProbeOrder(Shop: Record "Shpfy Shop"; AttackText: Text): Record "Shpfy Order Header"
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        Remainder: Text;
+        LineId: BigInteger;
+    begin
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := GetNextOrderId();
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Document Date" := Today();
+        OrderHeader."Ship-to Country/Region Code" := 'US';
+        OrderHeader."Ship-to City" := CopyStr(AttackText, 1, MaxStrLen(OrderHeader."Ship-to City"));
+        if StrLen(AttackText) > MaxStrLen(OrderHeader."Ship-to City") then
+            Remainder := CopyStr(AttackText, MaxStrLen(OrderHeader."Ship-to City") + 1);
+        OrderHeader."Ship-to County" := CopyStr(Remainder, 1, MaxStrLen(OrderHeader."Ship-to County"));
+        OrderHeader.Insert();
+
+        LineId := OrderHeader."Shopify Order Id" + 1;
+        OrderLine.Init();
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Line Id" := LineId;
+        OrderLine.Insert();
+
+        OrderTaxLine.Init();
+        OrderTaxLine."Parent Id" := LineId;
+        OrderTaxLine."Line No." := 1;
+        OrderTaxLine.Title := 'NEW YORK STATE TAX';
+        OrderTaxLine."Rate %" := 4.0;
+        OrderTaxLine.Insert();
+
+        exit(OrderHeader);
+    end;
+
     internal procedure CleanupTestData()
     var
         OrderHeader: Record "Shpfy Order Header";

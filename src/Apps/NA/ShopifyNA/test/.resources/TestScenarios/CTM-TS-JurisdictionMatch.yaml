@@ -472,12 +472,16 @@ tests:
       taxJurisdictions:
         - Code: CAHST
           Description: Canada HST
+          Country/Region Code: CA
         - Code: CAGST
           Description: Canada GST
+          Country/Region Code: CA
         - Code: CAPST
           Description: Canada PST
+          Country/Region Code: CA
         - Code: BCPST
           Description: British Columbia PST
+          Country/Region Code: CA
       orderAddress:
         countryRegionCode: CA
         county: ON
@@ -741,10 +745,13 @@ tests:
       taxJurisdictions:
         - Code: QCGST
           Description: Quebec GST
+          Country/Region Code: CA
         - Code: QCQST
           Description: Quebec QST
+          Country/Region Code: CA
         - Code: CAHST
           Description: Canada HST
+          Country/Region Code: CA
       orderAddress:
         countryRegionCode: CA
         county: QC
