@@ -8,6 +8,9 @@
         },
         {
             "path": "../../NA/ShopifyNA/test"
+        },
+        {
+            "path": "../../NA/ShopifyNA/red team test"
         }
     ],
     "settings": {}

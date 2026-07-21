@@ -17,7 +17,7 @@ This feature uses an LLM to automate the mapping from free-text Shopify tax desc
 
 Copilot Tax Matching ships as a **feature inside the `Shopify Connector NA` app** — a North America
 connector-localization container (mirrors *Shopify Connector BE*) that can host additional NA-only
-features. The feature source lives under `src/CopilotTaxMatching/`. Built, tested and published **US
+features. The feature source lives under `src/Copilot Tax Matching/`. Built, tested and published **US
 only** for now (add CA/MX when supported). The main Shopify Connector shows a notification prompting
 US environments to install this app (see *Localization promotion* below).
 
@@ -25,7 +25,7 @@ US environments to install this app (see *Localization promotion* below).
 |----------|-------|
 | App name | Shopify Connector NA |
 | App ID | a1b2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c |
-| Folder | `src/Apps/NA/ShopifyNA` (feature under `app/src/CopilotTaxMatching`) |
+| Folder | `src/Apps/NA/ShopifyNA` (feature under `app/src/Copilot Tax Matching`) |
 | Countries | US (add CA/MX when supported) |
 | Object ID Range | 30470-30499 |
 | Version | 29.0.0.0 |
@@ -406,7 +406,7 @@ The Copilot tax config fields carry their defaults as field `InitValue`s (`Auto 
 ## Test App
 
 A separate test app — **Shopify Connector NA Test** (`ShopifyNA/test/`, sources under
-`test/src/CopilotTaxMatching/`, ID range 134713-134732) — uses three layers:
+`test/src/Copilot Tax Matching/`, ID range 134713-134721) — uses three layers:
 
 **AI Test Toolkit (data-driven, real LLM):**
 - `Shpfy CTM Match Test` (134717), `Shpfy CTM Tax Area Test` (134718), `Shpfy CTM Guard Test` (134719) read their scenarios via `AITTestContext.GetInput()` and must run **through the AI Test Toolkit** (they need the YAML datasets + suite). Only the Match test issues real LLM calls; Tax Area and Guard exercise post-LLM logic through the same harness.
@@ -418,7 +418,7 @@ A separate test app — **Shopify Connector NA Test** (`ShopifyNA/test/`, source
 
 **Responsible AI (RAI) — prompt injection + harms:**
 - `Shpfy CTM XPIA Test` (134721, suite `CTM-XPIA`, `Frequency="Manual"`) — 9 deterministic, hand-authored cross-prompt-injection scenarios (`CTM-TS-XPIA.yaml`) that inject adversarial instructions through the untrusted fields (ship-to city/county, shipping/tax-line titles) and assert the injection is ignored: no attacker-dictated jurisdiction, no system-prompt leakage into `reason`, and no injection-driven garbage jurisdiction created. Runs in the AI Test Toolkit like the accuracy suites.
-- `Shpfy CTM Harms Test` (134722) + `Shpfy CTM Red Team XPIA Test` (134724), sharing `Shpfy CTM Red Team Helper` (134723) — dynamic **Red Team Scan** (Azure AI Red Teaming Agent) passes: content harms (Violence/HateUnfairness/Sexual/SelfHarm, baseline) and jailbreak/XPIA (`Jailbreak`/`IndirectAttack`/`Base64`/`ROT13`). Each generated attack is fed through the ship-to address; both assert `GetAttackSuccessRate() = 0`. No harmful content is committed. These need the Python eval server + Azure AI (`az login`) and are **not** wired into an AIT suite. `MultiTurn`/`Crescendo` are omitted — the matcher is a stateless single call.
+- `Shpfy CTM Harms Test` (134722) + `Shpfy CTM Red Team XPIA Test` (134724), sharing `Shpfy CTM Red Team Helper` (134723) — dynamic **Red Team Scan** (Azure AI Red Teaming Agent) passes: content harms (Violence/HateUnfairness/Sexual/SelfHarm, baseline) and jailbreak/XPIA (`Jailbreak`/`IndirectAttack`/`Base64`/`ROT13`). Each generated attack is fed through the ship-to address; both assert `GetAttackSuccessRate() = 0`. No harmful content is committed. These need the Python eval server + Azure AI (`az login`) and are **not** wired into an AIT suite. `MultiTurn`/`Crescendo` are omitted — the matcher is a stateless single call. These three live in a **separate internal test app** — **Shopify Connector NA Red Team Test** (`ShopifyNA/red team test/`, `isInternal: true`, ID range 134722-134732) — because they depend on the internal *Red Team Scan Test Library*; keeping them out of the public test app means the public Apps US build never resolves that internal dependency. They reuse the public test library's `RunHarmProbeAttack` entry point via `internalsVisibleTo`.
 
 See `TestMatrix.md` for the full test scenario inventory and the Automated Test Coverage map.
 

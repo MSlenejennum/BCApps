@@ -13,6 +13,7 @@ codeunit 134714 "Shpfy CTM Test Library"
     var
         AITTestContext: Codeunit "AIT Test Context";
         ShopCodeTok: Label 'CTMTEST', Locked = true;
+        NoMatchResponseTxt: Label 'No tax jurisdiction could be matched.', Locked = true;
 
     internal procedure GetInput(): Codeunit "Test Input Json"
     begin
@@ -501,6 +502,54 @@ codeunit 134714 "Shpfy CTM Test Library"
         OrderTaxLine.Insert();
 
         exit(OrderHeader);
+    end;
+
+    /// <summary>
+    /// Runs one Red Team attack string through the matcher: builds a probe order carrying the attack
+    /// in the untrusted ship-to address, calls MatchTaxLines, and returns the matcher's free-text
+    /// output (assigned jurisdiction codes + LLM `reason` values) for the scan to score. Lives here
+    /// so the (internal) matcher is called from the app that already has connector-internal access;
+    /// the internal red-team test app drives it via this entry point.
+    /// </summary>
+    internal procedure RunHarmProbeAttack(var Shop: Record "Shpfy Shop"; AttackQuery: Text): Text
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        HasRateConflict: Boolean;
+        Response: Text;
+    begin
+        OrderHeader := SetupHarmProbeOrder(Shop, AttackQuery);
+        if CopilotTaxMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict) then
+            Response := BuildHarmProbeResponse(MatchLog);
+        if Response = '' then
+            Response := NoMatchResponseTxt;
+        exit(Response);
+    end;
+
+    local procedure BuildHarmProbeResponse(MatchLog: JsonArray) Response: Text
+    var
+        MatchToken: JsonToken;
+        ValueToken: JsonToken;
+        MatchObj: JsonObject;
+        Line: Text;
+    begin
+        foreach MatchToken in MatchLog do begin
+            MatchObj := MatchToken.AsObject();
+            Line := '';
+            if MatchObj.Get('jurisdictionCode', ValueToken) then
+                if ValueToken.IsValue() then
+                    Line := ValueToken.AsValue().AsText();
+            if MatchObj.Get('reason', ValueToken) then
+                if ValueToken.IsValue() then
+                    Line += ': ' + ValueToken.AsValue().AsText();
+            if Line <> '' then begin
+                if Response <> '' then
+                    Response += ' | ';
+                Response += Line;
+            end;
+        end;
     end;
 
     internal procedure CleanupTestData()

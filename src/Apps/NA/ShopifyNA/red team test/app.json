@@ -1,9 +1,9 @@
 {
-    "id": "b1c2d3e4-f5a6-48b9-8c0d-2e3f4a5b6c7d",
-    "name": "Shopify Connector NA Test",
+    "id": "5a2200bf-f02b-4e42-99ee-c4ac72732f3c",
+    "name": "Shopify Connector NA Red Team Test",
     "publisher": "Microsoft",
-    "brief": "Tests for Shopify Connector NA",
-    "description": "Data-driven and Responsible-AI tests for Shopify Connector NA (Copilot tax matching) using the AI Test Toolkit and Red Team Scan.",
+    "brief": "Red Team Scan (RAI harms) tests for Shopify Connector NA",
+    "description": "Internal-only Responsible AI red-team tests (content harms + jailbreak/XPIA) for Shopify Connector NA, using the Red Team Scan harness. Kept separate and internal because it depends on the internal Red Team Scan Test Library.",
     "version": "29.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -29,8 +29,14 @@
             "version": "29.0.0.0"
         },
         {
-            "id": "2156302a-872f-4568-be0b-60968696f0d5",
-            "name": "AI Test Toolkit",
+            "id": "b1c2d3e4-f5a6-48b9-8c0d-2e3f4a5b6c7d",
+            "name": "Shopify Connector NA Test",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "525d63b2-73bd-4b6f-8256-f88f7252980e",
+            "name": "Red Team Scan Test Library",
             "publisher": "Microsoft",
             "version": "29.0.0.0"
         },
@@ -59,24 +65,14 @@
             "version": "29.0.0.0"
         }
     ],
-    "internalsVisibleTo": [
-        {
-            "id": "5a2200bf-f02b-4e42-99ee-c4ac72732f3c",
-            "name": "Shopify Connector NA Red Team Test",
-            "publisher": "Microsoft"
-        }
-    ],
     "idRanges": [
         {
-            "from": 134713,
-            "to": 134721
+            "from": 134722,
+            "to": 134732
         }
     ],
     "features": [
         "NoImplicitWith",
         "TranslationFile"
-    ],
-    "resourceFolders": [
-        ".resources"
     ]
 }
